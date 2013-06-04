@@ -35,7 +35,7 @@ define Package/openvswitch/Default
   SECTION:=net
   CATEGORY:=Network
   URL:=http://www.openvswitchswitch.org/
-  DEPENDS:=+libopenssl +librt +libpcap +veth
+  DEPENDS:=+libopenssl +librt +libpcap
   MAINTAINER:=Julius Schulz-Zander <julius@net.t-labs.tu-berlin.de>
 endef
 
@@ -52,7 +52,7 @@ endef
 define Package/openvswitch-common
   $(call Package/openvswitch/Default)
   TITLE:=Open Flow Switch Userspace Package
-  DEPENDS:=+libpcap +libopenssl +librt +kmod-openvswitch
+  DEPENDS:=+libpcap +libopenssl +librt +kmod-openvswitch +veth
 endef
 
 define Package/openvswitch-common/description
