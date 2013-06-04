@@ -1,5 +1,7 @@
 #!/bin/sh /etc/rc.common
 # Copyright (C) 2013 Julius Schulz-Zander
+# Modified by Michael Smith for BCRL,
+# McGill University
 
 START=15
 # DEBUG="echo"
@@ -11,6 +13,12 @@ start() {
 		$DEBUG /usr/bin/ovsdb-tool create /etc/openvswitch/conf.db \
 		/usr/share/openvswitch/vswitch.ovsschema
 	}
+	
+	# Create virtual interface for wireless.  Adding a wireless interface to OVS
+	# straight can cause strange issues, such as authentication not working
+
+	$DEBUG vethd -e wlan0 -v vwlan0
+	$DEBUG ifconfig vwlan0 up	
 
 	$DEBUG start-stop-daemon -q -S -x  /usr/sbin/ovsdb-server -- \
 		--remote=punix:/var/run/db.sock --remote=db:Open_vSwitch,manager_options \
@@ -22,14 +30,11 @@ start() {
 
 	$DEBUG start-stop-daemon -q -S -x  /usr/sbin/ovs-vswitchd -- \
 		--pidfile=/var/run/ovs-vswitchd.pid --detach
-	$DEBUG start-stop-daemon -q -S -x  /usr/sbin/ovs-brcompatd -- \
-		--pidfile=/var/run/ovs-brcompatd.pid --detach
 }
 
 stop() {
 	$DEBUG start-stop-daemon -q -K -p /var/run/ovsdb-server.pid
 	$DEBUG start-stop-daemon -q -K -p /var/run/ovs-vswitchd.pid
-	$DEBUG start-stop-daemon -q -S -p /var/run/ovs-brcompatd.pid
 }
 
 restart() {

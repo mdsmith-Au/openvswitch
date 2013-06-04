@@ -5,6 +5,8 @@
 # See /LICENSE for more information.
 #
 # $Id: Makefile $
+# Modified by Michael Smith for BCRL,
+# McGill University
 
 include $(TOPDIR)/rules.mk
 
@@ -33,7 +35,7 @@ define Package/openvswitch/Default
   SECTION:=net
   CATEGORY:=Network
   URL:=http://www.openvswitchswitch.org/
-  DEPENDS:=+libopenssl +librt +libpcap
+  DEPENDS:=+libopenssl +librt +libpcap +veth
   MAINTAINER:=Julius Schulz-Zander <julius@net.t-labs.tu-berlin.de>
 endef
 
@@ -91,19 +93,6 @@ define Package/openvswitch-switch/description
   Open vSwitch kernel-based switch.
 endef
 
-define Package/openvswitch-brcompat
-  $(call Package/openvswitch/Default)
-  TITLE:=Open Flow Switch Userspace Package
-  DEPENDS:=+openvswitch-common
-endef
-
-define Package/openvswitch-brcompat/description
-  openvswitch-brcompat provides a way for applications that use the Linux bridge
-  to gradually migrate to Open vSwitch. Programs that ordinarily control the
-  Linux bridge module, such as "brctl", instead control the Open vSwitch
-  kernel-based switch.
-endef
-
 define KernelPackage/openvswitch
   SECTION:=kernel
   CATEGORY:=Kernel modules
@@ -112,9 +101,8 @@ define KernelPackage/openvswitch
   KCONFIG:=CONFIG_BRIDGE
   DEPENDS:=+kmod-stp +kmod-ipv6
   FILES:= \
-	$(PKG_BUILD_DIR)/datapath/linux/brcompat.$(LINUX_KMOD_SUFFIX) \
 	$(PKG_BUILD_DIR)/datapath/linux/openvswitch.$(LINUX_KMOD_SUFFIX)
-  AUTOLOAD:=$(call AutoLoad,21,openvswitch brcompat)
+  AUTOLOAD:=$(call AutoLoad,21,openvswitch)
 endef
 
 define KernelPackage/openvswitch/description
@@ -193,15 +181,9 @@ define Package/openvswitch-switch/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/vswitchd/vswitch.ovsschema $(1)/usr/share/openvswitch/
 endef
 
-define Package/openvswitch-brcompat/install
-	$(INSTALL_DIR) $(1)/usr/sbin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/vswitchd/ovs-brcompatd $(1)/usr/sbin/
-endef
-
 $(eval $(call BuildPackage,openvswitch-ipsec))
 $(eval $(call BuildPackage,openvswitch-common))
 $(eval $(call BuildPackage,openvswitch-controller))
 $(eval $(call BuildPackage,openvswitch-switch))
-$(eval $(call BuildPackage,openvswitch-brcompat))
 $(eval $(call KernelPackage,openvswitch))
 
