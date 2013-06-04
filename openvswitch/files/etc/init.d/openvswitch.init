@@ -3,7 +3,7 @@
 # Modified by Michael Smith for BCRL,
 # McGill University
 
-START=15
+START=49
 # DEBUG="echo"
 
 start() {
@@ -18,7 +18,7 @@ start() {
 	# straight can cause strange issues, such as authentication not working
 
 	$DEBUG vethd -e wlan0 -v vwlan0
-	$DEBUG ifconfig vwlan0 up	
+	$DEBUG ifconfig vwlan0 up
 
 	$DEBUG start-stop-daemon -q -S -x  /usr/sbin/ovsdb-server -- \
 		--remote=punix:/var/run/db.sock --remote=db:Open_vSwitch,manager_options \
