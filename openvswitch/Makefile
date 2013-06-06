@@ -154,10 +154,10 @@ define Package/openvswitch-common/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/utilities/bugtool/ovs-bugtool $(1)/usr/sbin/
 endef
 
-define Package/openvswitch-common/postinst
-#!/bin/sh
-[ -n "$${IPKG_INSTROOT}" ] || /etc/init.d/openvswitch enable || true
-endef
+#define Package/openvswitch-common/postinst
+##!/bin/sh
+#[ -n "$${IPKG_INSTROOT}" ] || /etc/init.d/openvswitch enable || true
+#endef
 
 define Package/openvswitch-controller/install
 	$(INSTALL_DIR) $(1)/usr/bin/

@@ -20,6 +20,9 @@ start() {
 	$DEBUG vethd -e wlan0 -v vwlan0
 	$DEBUG ifconfig vwlan0 up
 
+	$DEBUG vethd -e wlan1 -v vwlan1
+	$DEBUG ifconfig vwlan1 up
+
 	$DEBUG start-stop-daemon -q -S -x  /usr/sbin/ovsdb-server -- \
 		--remote=punix:/var/run/db.sock --remote=db:Open_vSwitch,manager_options \
 		--pidfile=/var/run/ovsdb-server.pid --detach
