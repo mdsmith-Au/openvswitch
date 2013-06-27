@@ -1,4 +1,4 @@
-#!/bin/sh /etc/rc.common
+#!/bin/bash /etc/rc.common
 # Copyright (C) 2013 Julius Schulz-Zander
 # Modified by Michael Smith for BCRL,
 # McGill University
@@ -7,43 +7,83 @@ START=49
 # DEBUG="echo"
 
 start() {
-	[ -x /etc/openvswitch ] || mkdir -p /etc/openvswitch
-	[ -x /var/run/openvswitch ] || mkdir -p /var/run/openvswitch
-	[ -e /etc/openvswitch/conf.db ] || {
-		$DEBUG /usr/bin/ovsdb-tool create /etc/openvswitch/conf.db \
-		/usr/share/openvswitch/vswitch.ovsschema
-	}
-	
-	# Create virtual interface for wireless.  Adding a wireless interface to OVS
-	# straight can cause strange issues, such as authentication not working
+        [ -x /etc/openvswitch ] || mkdir -p /etc/openvswitch
+        [ -x /var/run/openvswitch ] || mkdir -p /var/run/openvswitch
+        [ -e /etc/openvswitch/conf.db ] || {
+                $DEBUG /usr/bin/ovsdb-tool create /etc/openvswitch/conf.db \
+                /usr/share/openvswitch/vswitch.ovsschema
+        }
 
-	$DEBUG vethd -e wlan0 -v vwlan0
-	$DEBUG ifconfig vwlan0 up
+        # Create virtual interface for wireless.  Adding a wireless interface to OVS
+        # straight can cause strange issues, such as authentication not working
 
-	$DEBUG vethd -e wlan1 -v vwlan1
-	$DEBUG ifconfig vwlan1 up
+        SSID1=$(uci get openvswitch.veth.ssid1)
+        VSSID1=$(uci get openvswitch.veth.vssid1)
+        SSID2=$(uci get openvswitch.veth.ssid2)
+        VSSID2=$(uci get openvswitch.veth.vssid2)
+        SSID3=$(uci get openvswitch.veth.ssid3)
+        VSSID3=$(uci get openvswitch.veth.vssid3)
+        SSID4=$(uci get openvswitch.veth.ssid4)
+        VSSID4=$(uci get openvswitch.veth.vssid4)
 
-	$DEBUG start-stop-daemon -q -S -x  /usr/sbin/ovsdb-server -- \
-		--remote=punix:/var/run/db.sock --remote=db:Open_vSwitch,manager_options \
-		--pidfile=/var/run/ovsdb-server.pid --detach
-	sleep 1
+        NO_SSIDS=$(uci get openvswitch.veth.number_ssids)
 
-	$DEBUG ovs-vsctl --no-wait init
-	sleep 1
 
-	$DEBUG start-stop-daemon -q -S -x  /usr/sbin/ovs-vswitchd -- \
-		--pidfile=/var/run/ovs-vswitchd.pid --detach
+        # Arguments based on # of tunnels
+        if (( "$NO_SSIDS" >= "1" )); then
+                vethd -e $SSID1 -v $VSSID1
+                ifconfig $VSSID1 up
+        fi
+        if (( "$NO_SSIDS" >= "2" )); then
+                vethd -e $SSID2 -v $VSSID2
+                ifconfig $VSSID2 up
+        fi
+        if (( "$NO_SSIDS" >= "3" )); then
+                vethd -e $SSID3 -v $VSSID3
+                ifconfig $VSSID3 up
+        fi
+        if (( "$NO_SSIDS" >= "4" )); then
+                vethd -e $SSID4 -v $VSSID4
+                ifconfig $VSSID4 up
+        fi
+
+        $DEBUG start-stop-daemon -q -S -x  /usr/sbin/ovsdb-server -- \
+                --remote=punix:/var/run/db.sock --remote=db:Open_vSwitch,manager_options \
+                --pidfile=/var/run/ovsdb-server.pid --detach
+        sleep 1
+
+        $DEBUG ovs-vsctl --no-wait init
+        sleep 1
+
+        $DEBUG start-stop-daemon -q -S -x  /usr/sbin/ovs-vswitchd -- \
+                --pidfile=/var/run/ovs-vswitchd.pid --detach
 }
 
 stop() {
-	$DEBUG start-stop-daemon -q -K -p /var/run/ovsdb-server.pid
-	$DEBUG start-stop-daemon -q -K -p /var/run/ovs-vswitchd.pid
+        $DEBUG start-stop-daemon -q -K -p /var/run/ovsdb-server.pid
+        $DEBUG start-stop-daemon -q -K -p /var/run/ovs-vswitchd.pid
+
+        SSID1=$(uci get openvswitch.veth.ssid1)
+        VSSID1=$(uci get openvswitch.veth.vssid1)
+        SSID2=$(uci get openvswitch.veth.ssid2)
+        VSSID2=$(uci get openvswitch.veth.vssid2)
+        SSID3=$(uci get openvswitch.veth.ssid3)
+        VSSID3=$(uci get openvswitch.veth.vssid3)
+        SSID4=$(uci get openvswitch.veth.ssid4)
+        VSSID4=$(uci get openvswitch.veth.vssid4)
+
+        NO_SSIDS=$(uci get openvswitch.veth.number_ssids)
+
+	#Delete veth interfaces
+        ip link del $VSSID1
+	ip link del $VSSID2
+	ip link del $VSSID3
+	ip link del $VSSID4
 }
 
 restart() {
-	stop
-	ifdown -a
-	sleep 2
-	ifup -a
-	start
+        stop
+        sleep 2
+        start
 }
+
